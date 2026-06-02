@@ -1,0 +1,43 @@
+name: JRDasd1m23
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0/30 * * * *"
+
+concurrency:
+  group: JRDasd1m23-concurrency
+  cancel-in-progress: false
+
+jobs:
+  JRDasd1m23:
+    runs-on: ubuntu-latest
+    environment: JRDasd1m23
+    permissions:
+      contents: write
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ABANDON_QUEUE_DAYS_TO_CANCEL: ${{ vars.ABANDON_QUEUE_DAYS_TO_CANCEL }}
+      ABANDON_PROCESS_DAYS_TO_CANCEL: ${{ vars.ABANDON_PROCESS_DAYS_TO_CANCEL }}
+      PRIO_ACCOUNT_RESET_DAYS: ${{ vars.PRIO_ACCOUNT_RESET_DAYS }}
+      NON_PRIO_ACCOUNT_RESET_DAYS: ${{ vars.NON_PRIO_ACCOUNT_RESET_DAYS }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.PRIVATE_REPO_PATH }}
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          ref: ${{ secrets.PRIVATE_REPO_BRANCH }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: |
+          pip install click supabase pytz
+      - name: Process
+        timeout-minutes: 10
+        continue-on-error: true
+        run: |
+          python jobs.py
